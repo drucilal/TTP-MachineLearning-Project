@@ -1,6 +1,6 @@
 *.log
 *.DS_Store
-*.csv
+
 wp-config.php
 wp-content/advanced-cache.php
 wp-content/backup-db/
