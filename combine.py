@@ -2,37 +2,64 @@
 #Please update on your own py file under your folder first and try it out 
 #before putting it up here. 
 
-# Drucila LeFevre : 11/06/2019
-
 # Housing EDA Code
 
-import pandas as pd 
-import seaborn as sns
-import math
 
+
+
+##IMPORT
+#import the packages
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+from scipy import stats
+from sklearn.preprocessing import StandardScaler
+
+#import the data
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
-# Missing Values Data Frame: Train 
-missing = train.isna().sum()
-missing = missing[missing>0]
-missing_percent = missing/train.shape[0] * 100
-train_missing = pd.DataFrame([missing, missing_percent], index = ['total', 'missing percent']).T
-train_missing.sort_values(['missing percent'], ascending = [False])
 
 
-# Missing Values Data Frame: Test
-missing_test = test.isna().sum()
-missing_test = missing_test[missing_test>0]
-missingtest_percent = missing_test/test.shape[0] * 100
-test_missing = pd.DataFrame([missing_test, missingtest_percent], index = ['total', 'missing percent']).T
-test_missing.sort_values(['missing percent'], ascending = [False])
-
-train = train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence', 'PoolArea', 'Id'])
 
 
+##UNDERSTADING THE DATA
+#check the columns of train dataset
+train.columns
+
+#structure of train dataset
+print('original rows:', train.shape[0], 'original columns:', train.shape[1])
+
+#structure of test dataset
+print('test rows:', test.shape[0], 'test columns:', test.shape[1])
+
+#training data information
+train.info()
+
+#testing data information
+test.info()
+
+#types of variables 
+np.unique(train.dtypes)
+
+#Variables with float64
+train.select_dtypes(include = ['float64']).dtypes
+
+#variables with integer
+train.select_dtypes(include = ['int64']).dtypes
+
+#Variables with object
+train.select_dtypes(include = ['object']).dtypes
+
+
+
+
+
+
+##Variables
 #Numerical Variables
-numerics = ['int16', 'int32', 'int64', 'float16', 'float32', 'float64']
+numerics = ['int64', 'float64']
 numeric_train  = train.select_dtypes(include = numerics)  
 numeric_train = numeric_train.drop(columns = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath','GarageYrBlt', 'MoSold', 'YrSold', 'YearRemodAdd', 'OverallQual',
                                              'OverallCond', 'YearBuilt','MSSubClass'])
@@ -53,57 +80,33 @@ categori = ['object']
 catego = train.select_dtypes(include= categori)
 catego.head()
 categorical_train = pd.concat([catego, train_categories], axis=1, sort=False)
-
 categorical_train.head()
 
 
+
+
+
+
+
+##UNDERSTANDING THE SALEPRICE
+#summary on SalePrice(target variable) from train dataset
+train['SalePrice'].describe()
+#All prices are greater than 0.
+
 # Sales Price
+print('Skew: {:.3f} | Kurtosis: {:.3f}'.format(train.SalePrice.skew(), train.SalePrice.kurtosis()))
 
-print('Skew: {:.3f} | Kurtosis: {:.3f}'.format(numeric_train.SalePrice.skew(), numeric_train.SalePrice.kurtosis()))
+#histogram of SalePrice to see the distribution 
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(14,4))
+sns.distplot(train['SalePrice'], ax = ax1)
+ax1.set_ylabel('Frequency')
+ax1.set_title('SalePrice Distribution')
 
-
-# Looking at Target Variable: Sale Price
-plt.figure(figsize=(10,6))
-sns.distplot(numeric_train.SalePrice)
+#QQ-plot
+stats.probplot(train['SalePrice'], plot=plt)
 plt.show()
-
-# Here is a scatter plot with dist plot for all numeric variables in the train data 
-#by Sale Price
-
-sns.jointplot(x="LotFrontage", y="SalePrice", data=numeric_train, kind = 'reg')
-
-sns.jointplot(x="LotArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="MasVnrArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="BsmtFinSF1", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="1stFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="2ndFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x='LowQualFinSF', y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GrLivArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="BedroomAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="KitchenAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="TotRmsAbvGrd", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GarageCars", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GarageArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="WoodDeckSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="OpenPorchSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="EnclosedPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="3SsnPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="ScreenPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="MiscVal", y="SalePrice", data=numeric_train, kind = 'reg')
-
-
-
-# Categorical Variables
-categorical_train.columns
-f = pd.melt(categorical_train, value_vars=sorted(categorical_train))
-g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
-plt.xticks(rotation='vertical')
-g = g.map(sns.countplot, 'value')
-[plt.setp(ax.get_xticklabels(), rotation=60) for ax in g.axes.flat]
-g.fig.tight_layout()
-plt.show()
-
-
+#this is right skewed (violating assumptions of linear regression) so we will need to normalize. 
+#-> power transformation(rightskew -> power >1) or log transformation or box cox?
 
 # How expensive are houses?
 import matplotlib.pyplot as plt
@@ -124,12 +127,56 @@ plt.show()
 
 
 
-# Distribution Plots for Numerical Features
+
+
+
+
+##EDA
+# Here is a scatter plot with dist plot for all numeric variables in the train data 
+#by Sale Price
+sns.jointplot(x="LotFrontage", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="LotArea", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="MasVnrArea", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="BsmtFinSF1", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="1stFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="2ndFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x='LowQualFinSF', y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="GrLivArea", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="BedroomAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="KitchenAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="TotRmsAbvGrd", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="GarageCars", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="GarageArea", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="WoodDeckSF", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="OpenPorchSF", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="EnclosedPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="3SsnPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="ScreenPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+sns.jointplot(x="MiscVal", y="SalePrice", data=numeric_train, kind = 'reg')
+
+## Distribution Plots for Numerical Features
 # Grid of distribution plots of all numerical features
 f = pd.melt(numeric_train, value_vars=sorted(numeric_train))
 g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
 g = g.map(sns.distplot, 'value')
 
+#coorelation
+#Numeric variables correlation
+numcor = train.corr()
+colormap = plt.cm.RdBu
+f, ax = plt.subplots(figsize = (9,8))
+sns.heatmap(numcor, ax=ax, cmap = colormap, linewidths = 0.1)
+
+
+# Categorical Variables
+categorical_train.columns
+f = pd.melt(categorical_train, value_vars=sorted(categorical_train))
+g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
+plt.xticks(rotation='vertical')
+g = g.map(sns.countplot, 'value')
+[plt.setp(ax.get_xticklabels(), rotation=60) for ax in g.axes.flat]
+g.fig.tight_layout()
+plt.show()
 
 # Box Plot for Categorical Features
 f = pd.melt(train, id_vars=['SalePrice'], value_vars=sorted(categorical_train))
@@ -148,100 +195,115 @@ g = g.map(sns.countplot, 'value')
 g.fig.tight_layout()
 plt.show()
 
-# Data Cleaning: Combination of Train and Test Data Set
 
 
-# Looking at Missing Values 
 
-iowa_train = pd.read_csv('train.csv')
-iowa_test = pd.read_csv('test.csv')
 
-# Missing Values Data Frame : Train DataSet
-missing = iowa_train.isna().sum()
+
+#### Data Cleaning: Combination of Train and Test Data Set
+
+##MISSING
+# Missing Values Data Frame: Train 
+missing = train.isna().sum()
 missing = missing[missing>0]
-missing_percent = missing/iowa_train.shape[0] * 100
+missing_percent = missing/train.shape[0] * 100
 train_missing = pd.DataFrame([missing, missing_percent], index = ['total', 'missing percent']).T
 train_missing.sort_values(['missing percent'], ascending = [False])
 
-# Missing Values Date Frame : Test Dataset
-missing_test = iowa_test.isna().sum()
+# Missing Values Data Frame: Test
+missing_test = test.isna().sum()
 missing_test = missing_test[missing_test>0]
-missingtest_percent = missing_test/iowa_test.shape[0] * 100
+missingtest_percent = missing_test/test.shape[0] * 100
 test_missing = pd.DataFrame([missing_test, missingtest_percent], index = ['total', 'missing percent']).T
 test_missing.sort_values(['missing percent'], ascending = [False])
 
+# There are some that has missing only in train dataset and only in test dataset.
+# first drop the SalePrice column of train dataset and
+# then we will combine two dataset and then clean it. 
+trainX = train.drop('SalePrice', axis =1)
+testX = test
+test_train = pd.concat([trainX, testX], keys=['train', 'test'])
+
+#Check the test_train dataset
+test_train.shape
+#2919 rows, 80 columns
+
+# Dropping the columns with so many missing values. 
+test_train = test_train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence', 'Id'])
+#not dropping poolarea since we can use that to assume that existing value means 
+#there is a pool and if data is missing, it might be an indication that there is no pool. 
+
+#Check the test_train dataset
+test_train.shape
+#2919 rows, 75 columns
 
 
-# Data Cleaning: Combined Data Set (Test and Train)
+# Check the original Missing Values Data Frame: Test_Train 
+missing = test_train.isna().sum()
+missing = missing[missing>0]
+missing_percent = missing/test_train.shape[0] * 100
+test_train_missing = pd.DataFrame([missing, missing_percent], index = ['total', 'missing percent']).T
+test_train_missing.sort_values(['missing percent'], ascending = [False])
 
-import pandas as pd 
-
-# Importing Combined DataSet (Test and Train)
-train = pd.read_csv('test_train.csv')
-
+##imputation
 # Preprocessing: Imputation: Filling Missing Values 
-train.loc[:, "BedroomAbvGr"] = train.loc[:, "BedroomAbvGr"].fillna(0)
-train.loc[:, "BsmtQual"] = train.loc[:, "BsmtQual"].fillna("No")
-train.loc[:, "BsmtCond"] = train.loc[:, "BsmtCond"].fillna("No")
-train.loc[:, "BsmtExposure"] = train.loc[:, "BsmtExposure"].fillna("No")
-train.loc[:, "BsmtFinType1"] = train.loc[:, "BsmtFinType1"].fillna("No")
-train.loc[:, "BsmtFinType2"] = train.loc[:, "BsmtFinType2"].fillna("No")
-train.loc[:, "BsmtFullBath"] = train.loc[:, "BsmtFullBath"].fillna(0)
-train.loc[:, "BsmtHalfBath"] = train.loc[:, "BsmtHalfBath"].fillna(0)
-train.loc[:, "BsmtUnfSF"] = train.loc[:, "BsmtUnfSF"].fillna(0)
-train.loc[:, "CentralAir"] = train.loc[:, "CentralAir"].fillna("N")
-train.loc[:, "Condition1"] = train.loc[:, "Condition1"].fillna("Norm")
-train.loc[:, "Condition2"] = train.loc[:, "Condition2"].fillna("Norm")
-train.loc[:, "EnclosedPorch"] = train.loc[:, "EnclosedPorch"].fillna(0)
-train.loc[:, "ExterCond"] = train.loc[:, "ExterCond"].fillna("TA")
-train.loc[:, "ExterQual"] = train.loc[:, "ExterQual"].fillna("TA")
-train.loc[:, "FireplaceQu"] = train.loc[:, "FireplaceQu"].fillna("No")
-train.loc[:, "Fireplaces"] = train.loc[:, "Fireplaces"].fillna(0)
-train.loc[:, "Functional"] = train.loc[:, "Functional"].fillna("Typ")
-train.loc[:, "GarageType"] = train.loc[:, "GarageType"].fillna("No")
-train.loc[:, "GarageFinish"] = train.loc[:, "GarageFinish"].fillna("No")
-train.loc[:, "GarageQual"] = train.loc[:, "GarageQual"].fillna("No")
-train.loc[:, "GarageCond"] = train.loc[:, "GarageCond"].fillna("No")
-train.loc[:, "GarageArea"] = train.loc[:, "GarageArea"].fillna(0)
-train.loc[:, "GarageCars"] = train.loc[:, "GarageCars"].fillna(0)
-train.loc[:, "HalfBath"] = train.loc[:, "HalfBath"].fillna(0)
-train.loc[:, "HeatingQC"] = train.loc[:, "HeatingQC"].fillna("TA")
-train.loc[:, "KitchenAbvGr"] = train.loc[:, "KitchenAbvGr"].fillna(0)
-train.loc[:, "KitchenQual"] = train.loc[:, "KitchenQual"].fillna("TA")
-train.loc[:, "LotFrontage"] = train.loc[:, "LotFrontage"].fillna(0)
-train.loc[:, "LotShape"] = train.loc[:, "LotShape"].fillna("Reg")
-train.loc[:, "MasVnrType"] = train.loc[:, "MasVnrType"].fillna("None")
-train.loc[:, "MasVnrArea"] = train.loc[:, "MasVnrArea"].fillna(0)
-train.loc[:, "MiscVal"] = train.loc[:, "MiscVal"].fillna(0)
-train.loc[:, "OpenPorchSF"] = train.loc[:, "OpenPorchSF"].fillna(0)
-train.loc[:, "PavedDrive"] = train.loc[:, "PavedDrive"].fillna("N")
-train.loc[:, "SaleCondition"] = train.loc[:, "SaleCondition"].fillna("Normal")
-train.loc[:, "ScreenPorch"] = train.loc[:, "ScreenPorch"].fillna(0)
-train.loc[:, "TotRmsAbvGrd"] = train.loc[:, "TotRmsAbvGrd"].fillna(0)
-train.loc[:, "Utilities"] = train.loc[:, "Utilities"].fillna("AllPub")
-train.loc[:, "WoodDeckSF"] = train.loc[:, "WoodDeckSF"].fillna(0)
-train.loc[:, "Exterior1st"] = train.loc[:, "Exterior1st"].fillna("No")
-train.loc[:, "Exterior2nd"] = train.loc[:, "Exterior2nd"].fillna("No")
-train.loc[:, "BsmtFinSF1"] = train.loc[:, "BsmtFinSF1"].fillna(0)
-train.loc[:, "BsmtFinSF2"] = train.loc[:, "BsmtFinSF2"].fillna(0)
-train.loc[:, "TotalBsmtSF"] = train.loc[:, "TotalBsmtSF"].fillna(0)
-train.loc[:, "Electrical"] = train.loc[:, "Electrical"].fillna("Electrical")
-train.loc[:, "SaleType"] = train.loc[:, "SaleType"].fillna("WD")
-train.loc[:, "GarageYrBlt"] = train.loc[:, "GarageYrBlt"].fillna("None")
+test_train.loc[:, "BedroomAbvGr"] = test_train.loc[:, "BedroomAbvGr"].fillna(0)
+test_train.loc[:, "BsmtQual"] = test_train.loc[:, "BsmtQual"].fillna("No")
+test_train.loc[:, "BsmtCond"] = test_train.loc[:, "BsmtCond"].fillna("No")
+test_train.loc[:, "BsmtExposure"] = test_train.loc[:, "BsmtExposure"].fillna("No")
+test_train.loc[:, "BsmtFinType1"] = test_train.loc[:, "BsmtFinType1"].fillna("No")
+test_train.loc[:, "BsmtFinType2"] = test_train.loc[:, "BsmtFinType2"].fillna("No")
+test_train.loc[:, "BsmtFullBath"] = test_train.loc[:, "BsmtFullBath"].fillna(0)
+test_train.loc[:, "BsmtHalfBath"] = test_train.loc[:, "BsmtHalfBath"].fillna(0)
+test_train.loc[:, "BsmtUnfSF"] = test_train.loc[:, "BsmtUnfSF"].fillna(0)
+test_train.loc[:, "CentralAir"] = test_train.loc[:, "CentralAir"].fillna("N")
+test_train.loc[:, "Condition1"] = test_train.loc[:, "Condition1"].fillna("Norm")
+test_train.loc[:, "Condition2"] = test_train.loc[:, "Condition2"].fillna("Norm")
+test_train.loc[:, "EnclosedPorch"] = test_train.loc[:, "EnclosedPorch"].fillna(0)
+test_train.loc[:, "ExterCond"] = test_train.loc[:, "ExterCond"].fillna("TA")
+test_train.loc[:, "ExterQual"] = test_train.loc[:, "ExterQual"].fillna("TA")
+test_train.loc[:, "FireplaceQu"] = test_train.loc[:, "FireplaceQu"].fillna("No")
+test_train.loc[:, "Fireplaces"] = test_train.loc[:, "Fireplaces"].fillna(0)
+test_train.loc[:, "Functional"] = test_train.loc[:, "Functional"].fillna("Typ")
+test_train.loc[:, "GarageType"] = test_train.loc[:, "GarageType"].fillna("No")
+test_train.loc[:, "GarageFinish"] = test_train.loc[:, "GarageFinish"].fillna("No")
+test_train.loc[:, "GarageQual"] = test_train.loc[:, "GarageQual"].fillna("No")
+test_train.loc[:, "GarageCond"] = test_train.loc[:, "GarageCond"].fillna("No")
+test_train.loc[:, "GarageArea"] = test_train.loc[:, "GarageArea"].fillna(0)
+test_train.loc[:, "GarageCars"] = test_train.loc[:, "GarageCars"].fillna(0)
+test_train.loc[:, "HalfBath"] = test_train.loc[:, "HalfBath"].fillna(0)
+test_train.loc[:, "HeatingQC"] = test_train.loc[:, "HeatingQC"].fillna("TA")
+test_train.loc[:, "KitchenAbvGr"] = test_train.loc[:, "KitchenAbvGr"].fillna(0)
+test_train.loc[:, "KitchenQual"] = test_train.loc[:, "KitchenQual"].fillna("TA")
+test_train.loc[:, "LotFrontage"] = test_train.loc[:, "LotFrontage"].fillna(0)
+test_train.loc[:, "LotShape"] = test_train.loc[:, "LotShape"].fillna("Reg")
+test_train.loc[:, "MasVnrType"] = test_train.loc[:, "MasVnrType"].fillna("None")
+test_train.loc[:, "MasVnrArea"] = test_train.loc[:, "MasVnrArea"].fillna(0)
+test_train.loc[:, "MiscVal"] = test_train.loc[:, "MiscVal"].fillna(0)
+test_train.loc[:, "OpenPorchSF"] = test_train.loc[:, "OpenPorchSF"].fillna(0)
+test_train.loc[:, "PavedDrive"] = test_train.loc[:, "PavedDrive"].fillna("N")
+test_train.loc[:, "SaleCondition"] = test_train.loc[:, "SaleCondition"].fillna("Normal")
+test_train.loc[:, "ScreenPorch"] = test_train.loc[:, "ScreenPorch"].fillna(0)
+test_train.loc[:, "TotRmsAbvGrd"] = test_train.loc[:, "TotRmsAbvGrd"].fillna(0)
+test_train.loc[:, "Utilities"] = test_train.loc[:, "Utilities"].fillna("AllPub")
+test_train.loc[:, "WoodDeckSF"] = test_train.loc[:, "WoodDeckSF"].fillna(0)
+test_train.loc[:, "Exterior1st"] = test_train.loc[:, "Exterior1st"].fillna("No")
+test_train.loc[:, "Exterior2nd"] = test_train.loc[:, "Exterior2nd"].fillna("No")
+test_train.loc[:, "BsmtFinSF1"] = test_train.loc[:, "BsmtFinSF1"].fillna(0)
+test_train.loc[:, "BsmtFinSF2"] = test_train.loc[:, "BsmtFinSF2"].fillna(0)
+test_train.loc[:, "TotalBsmtSF"] = test_train.loc[:, "TotalBsmtSF"].fillna(0)
+test_train.loc[:, "Electrical"] = test_train.loc[:, "Electrical"].fillna("Electrical")
+test_train.loc[:, "SaleType"] = test_train.loc[:, "SaleType"].fillna("WD")
+test_train.loc[:, "GarageYrBlt"] = test_train.loc[:, "GarageYrBlt"].fillna("None")
+test_train.loc[:, "PoolArea"] = test_train.loc[:, "PoolArea"].fillna("0")
+test_train.loc[:, "MSZoning"] = test_train.loc[:, "MSZoning"].fillna("RL")
 
 
-# Ms Zoning and Garage Yr Blt Still * Pending* 
-
-# Lookig at the frequency of garage year built
-temp = train['GarageYrBlt'].value_counts().reset_index(name='GarageYrBlt')
-
-# Looking at Scatterplot
-sns.scatterplot(x = 'GarageCars',  y = 'GarageArea', data = train)
-
-
-
-
-
-
-
+# Check the Final Missing Values Data Frame: Test_Train 
+missing = test_train.isna().sum()
+missing = missing[missing>0]
+missing_percent = missing/test_train.shape[0] * 100
+test_train_missing = pd.DataFrame([missing, missing_percent], index = ['total', 'missing percent']).T
+test_train_missing.sort_values(['missing percent'], ascending = [False])
+#nothing missing!
 
