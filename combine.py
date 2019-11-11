@@ -93,21 +93,6 @@ categorical_train.head()
 train['SalePrice'].describe()
 #All prices are greater than 0.
 
-# Sales Price
-print('Skew: {:.3f} | Kurtosis: {:.3f}'.format(train.SalePrice.skew(), train.SalePrice.kurtosis()))
-
-#histogram of SalePrice to see the distribution 
-fig, (ax1, ax2) = plt.subplots(1,2,figsize=(14,4))
-sns.distplot(train['SalePrice'], ax = ax1)
-ax1.set_ylabel('Frequency')
-ax1.set_title('SalePrice Distribution')
-
-#QQ-plot
-stats.probplot(train['SalePrice'], plot=plt)
-plt.show()
-#this is right skewed (violating assumptions of linear regression) so we will need to normalize. 
-#-> power transformation(rightskew -> power >1) or log transformation or box cox?
-
 # How expensive are houses?
 import matplotlib.pyplot as plt
 print('The cheapest house sold for ${:,.0f} and the most expensive for ${:,.0f}'.format(
@@ -118,12 +103,47 @@ train.SalePrice.hist(bins=75, rwidth=.8, figsize=(14,4))
 plt.title('How expensive are houses?')
 plt.show()
 
-# When were the houses built?
-print('Oldest house built in {}. Newest house built in {}.'.format(
-    train.YearBuilt.min(), train.YearBuilt.max()))
-train.YearBuilt.hist(bins=14, rwidth=.9, figsize=(12,4))
-plt.title('When were the houses built?')
+#Remove outlier
+train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
+
+#Check if outlier was removed successfully
+fig, ax = plt.subplots()
+ax = sns.regplot(train['GrLivArea'], train['SalePrice'], scatter_kws={'s': 10})
+plt.ylabel('SalePrice', fontsize=13)
+plt.xlabel('GrLivArea', fontsize=13)
 plt.show()
+
+train.shape   #2 Rows Gone from the removing the outlier
+
+
+# Sales Price
+print('Skew: {:.3f} | Kurtosis: {:.3f}'.format(train.SalePrice.skew(), train.SalePrice.kurtosis()))
+#skew: 1.881, kurtosis: 6.523
+
+#histogram of SalePrice to see the distribution 
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(14,4))
+sns.distplot(train['SalePrice'], ax = ax1)
+ax1.set_ylabel('Frequency')
+ax1.set_title('SalePrice Distribution')
+#QQ-plot
+stats.probplot(train['SalePrice'], plot=plt)
+plt.show()
+#this is right skewed (violating assumptions of linear regression) so we will need to normalize. 
+#by doing log transformation 
+
+# SalePrice log transformation
+y_log = np.log1p(train['SalePrice'])
+
+#histogram of SalePrice to see the distribution after log transformation
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(14,4))
+sns.distplot(y_log, ax = ax1)
+ax1.set_ylabel('Frequency')
+ax1.set_title('SalePrice Distribution')
+#QQ-plot
+stats.probplot(y_log, plot=plt)
+plt.show()
+
+
 
 
 
@@ -167,6 +187,9 @@ colormap = plt.cm.RdBu
 f, ax = plt.subplots(figsize = (9,8))
 sns.heatmap(numcor, ax=ax, cmap = colormap, linewidths = 0.1)
 
+#Which ones are highly correlated?
+s = numcor.unstack()
+s[(abs(s)>0.6) & (abs(s) < 1)]
 
 # Categorical Variables
 categorical_train.columns
@@ -195,6 +218,12 @@ g = g.map(sns.countplot, 'value')
 g.fig.tight_layout()
 plt.show()
 
+# When were the houses built?
+print('Oldest house built in {}. Newest house built in {}.'.format(
+    train.YearBuilt.min(), train.YearBuilt.max()))
+train.YearBuilt.hist(bins=14, rwidth=.9, figsize=(12,4))
+plt.title('When were the houses built?')
+plt.show()
 
 
 
@@ -220,13 +249,13 @@ test_missing.sort_values(['missing percent'], ascending = [False])
 # There are some that has missing only in train dataset and only in test dataset.
 # first drop the SalePrice column of train dataset and
 # then we will combine two dataset and then clean it. 
-trainX = train.drop('SalePrice', axis =1)
-testX = test
+trainX = train.drop('SalePrice', axis =1)     #1458 rows with 80 columns
+testX = test                                  #1459 rows with 80 columns
 test_train = pd.concat([trainX, testX], keys=['train', 'test'])
 
 #Check the test_train dataset
 test_train.shape
-#2919 rows, 80 columns
+#2917 rows, 80 columns
 
 # Dropping the columns with so many missing values. 
 test_train = test_train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence', 'Id'])
@@ -235,7 +264,7 @@ test_train = test_train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence'
 
 #Check the test_train dataset
 test_train.shape
-#2919 rows, 75 columns
+#2917 rows, 75 columns
 
 
 # Check the original Missing Values Data Frame: Test_Train 
@@ -294,7 +323,7 @@ test_train.loc[:, "BsmtFinSF2"] = test_train.loc[:, "BsmtFinSF2"].fillna(0)
 test_train.loc[:, "TotalBsmtSF"] = test_train.loc[:, "TotalBsmtSF"].fillna(0)
 test_train.loc[:, "Electrical"] = test_train.loc[:, "Electrical"].fillna("Electrical")
 test_train.loc[:, "SaleType"] = test_train.loc[:, "SaleType"].fillna("WD")
-test_train.loc[:, "GarageYrBlt"] = test_train.loc[:, "GarageYrBlt"].fillna("None")
+test_train.loc[:, "GarageYrBlt"] = test_train.loc[:, "GarageYrBlt"].fillna("0")
 test_train.loc[:, "PoolArea"] = test_train.loc[:, "PoolArea"].fillna("0")
 test_train.loc[:, "MSZoning"] = test_train.loc[:, "MSZoning"].fillna("RL")
 
@@ -307,3 +336,117 @@ test_train_missing = pd.DataFrame([missing, missing_percent], index = ['total', 
 test_train_missing.sort_values(['missing percent'], ascending = [False])
 #nothing missing!
 
+
+#Create a variable for Total SF
+#Combine all Bsmt + 1st + 2nd fl, does not distinguish between quality
+test_train['TotalSF'] = test_train['TotalBsmtSF'] + test_train['1stFlrSF'] + test_train['2ndFlrSF']
+
+#Create Variable For Total Bath
+#Half Baths are multiplied by 0.5 and Full are added as a whole
+test_train['TotalBath'] = test_train['BsmtFullBath'] + test_train['FullBath'] + 0.5* test_train['BsmtHalfBath'] + 0.5 * test_train['HalfBath']
+
+#Create Variable For Total Porch SF
+#We do not distinguish between the variables
+test_train['TotalPorchSF'] = test_train['WoodDeckSF'] + test_train['OpenPorchSF'] + test_train['EnclosedPorch']+ test_train['3SsnPorch']+ test_train['ScreenPorch']
+
+#find numerical variables so we can check skewness. 
+a1 = test_train.dtypes[test_train.dtypes != "object"].index
+
+skewed_features = test_train[a1].apply(lambda x: skew(x)).sort_values(ascending=False)
+print("\nSkew in numerical features: \n")
+skewness = pd.DataFrame({'Skew' :skewed_features})
+skewness
+
+#box-cox
+skewness = skewness[abs(skewness) > 0.75]
+print("There are {} skewed numerical features to BoxCox transform".format(skewness.shape[0]))
+skewed_feats = skewness.index
+
+lam = 0.15
+for x in skewed_feats:
+    test_train[x] = boxcox1p(test_train[x], lam)
+    test_train[x] += 1
+
+# Reassign train dataset from the transformed df
+train = test_train[:1458]
+
+# to check after the box cox
+plt.figure(figsize=(20,20))
+g1 = sns.jointplot(trainXLotFrontage'],y_log, s = 10)
+g1.set_axis_labels('LotFrontage', 'log(SalePrice)', fontsize=12)
+g2 = sns.jointplot(trainX['LotArea'],y_log, color="indianred", s = 10, xlim  = [10, 40])
+g2.set_axis_labels('LotArea', 'log(SalePrice)', fontsize=12)
+
+#Create Dummy variable for finished bsmt
+#not distinguishing between finish quality for basement only if the basement is unfinished
+test_train['BsmtFin']= (test_train['BsmtFinType1'] != 'Unf')*1
+
+#listing categorical values so we can create dummy columns
+ctd = test_train
+dl = []
+for i in ctd:
+    if ctd[i].dtype == 'O':
+        dl.append(i)
+print(dl)
+
+#Creating Dummy variables, and dropping first instances
+test_train = pd.get_dummies(ctd, columns = ['MSZoning', 'Street','LotShape','LandContour','Utilities', \
+                          'LotConfig', 'LandSlope', 'Neighborhood', 'Condition1', 'Condition2', \
+                          'BldgType', 'HouseStyle', 'RoofStyle', 'RoofMatl', 'Exterior1st', \
+                          'Exterior2nd', 'MasVnrType', 'ExterQual', 'ExterCond', 'Foundation', \
+                          'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', \
+                          'Heating', 'HeatingQC', 'CentralAir', 'Electrical', 'KitchenQual', \
+                          'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', 'GarageQual', \
+                          'GarageCond', 'PavedDrive', 'SaleType', 'SaleCondition'],drop_first = True)
+
+#to check the final test_train after imputation and dummification
+test_train
+#2917 rows with 251 columns
+
+
+
+
+
+
+
+## Spliting the dataset back to train and test
+#final test and train dataset
+final_train = df.iloc[:1458,:]
+final_test = df.iloc[1458:,:]
+print('final_train', final_train.shape, 'final_test', final_test.shape)
+#final_train(1458,251) final_test (1459.251)
+
+#created SalePrice df that just includes SalePrice. 
+SalePrice = train.iloc[:,-1:]
+SalePrice
+#1458 rows and 1 column
+
+#reset index for final_train
+final_train = final_train.reset_index()
+
+#reset index for SalePrice
+SalePrice = SalePrice.reset_index()
+
+#put back the SalePrice to train dataset
+final_train['SalePrice'] = SalePrice['SalePrice']
+
+#get rid of level_0 and level_1 columns of final_train
+del final_train['level_0']
+del final_train['level_1']
+
+#check the final_train dataset
+final_train.head()
+
+#reset index for test train
+final_test = final_test.reset_index()
+
+#get rid of level_0 and level_1 columns of final_test
+del final_test['level_0']
+del final_test['level_1']
+
+#check the final_test dataset
+final_test.head()
+
+#Exporting final cleaned train dataset and cleaned 
+final_train.to_csv('cleanedtrain.csv')
+final_test.to_csv('cleanedtest.csv')
