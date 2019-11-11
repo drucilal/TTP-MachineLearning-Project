@@ -421,21 +421,22 @@ SalePrice = train.iloc[:,-1:]
 SalePrice
 #1458 rows and 1 column
 
-#reset index for final_train
-final_train = final_train.reset_index()
+#make final_trainRsale
+final_trainRsale = final_train
+final_trainRsale = final_trainRsale.reset_index()
 
 #reset index for SalePrice
 SalePrice = SalePrice.reset_index()
 
 #put back the SalePrice to train dataset
-final_train['SalePrice'] = SalePrice['SalePrice']
+final_trainRsale['SalePrice'] = SalePrice['SalePrice']
 
 #get rid of level_0 and level_1 columns of final_train
-del final_train['level_0']
-del final_train['level_1']
+del final_trainRsale['level_0']
+del final_trainRsale['level_1']
 
 #check the final_train dataset
-final_train.head()
+final_trainRsale.head()
 
 #reset index for test train
 final_test = final_test.reset_index()
@@ -447,6 +448,28 @@ del final_test['level_1']
 #check the final_test dataset
 final_test.head()
 
+# SalePrice log series to the dataframe
+y_log = y_log.to_frame()
+
+#To check y_log
+type(y_log)
+
+#reset index for y_log
+y_log = y_log.reset_index()
+
+final_trainwithYLOG = final_train
+final_trainwithYLOG = final_trainwithYLOG.reset_index()
+
+final_trainwithYLOG['ylogSalePrice'] = y_log['SalePrice']
+
+#get rid of level_0 and level_1 columns of final_trainwithYLOG
+del final_trainwithYLOG['level_0']
+del final_trainwithYLOG['level_1']
+
+#check final_trainwithYLOG
+final_trainwithYLOG.head()
+
 #Exporting final cleaned train dataset and cleaned 
-final_train.to_csv('cleanedtrain.csv')
+final_trainRsale.to_csv('cleanedtrain.csv')
 final_test.to_csv('cleanedtest.csv')
+final_trainwithYLOG.to_csv('cleanedtrainwithYlog.csv')
