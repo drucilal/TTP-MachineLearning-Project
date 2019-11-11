@@ -104,7 +104,7 @@ plt.title('How expensive are houses?')
 plt.show()
 
 #Remove outlier
-train = train.drop(train[(train['GrLivArea']>4000) & (train['SalePrice']<300000)].index)
+train = train.drop(train[(train['GrLivArea']>4000)].index)
 
 #Check if outlier was removed successfully
 fig, ax = plt.subplots()
@@ -113,12 +113,12 @@ plt.ylabel('SalePrice', fontsize=13)
 plt.xlabel('GrLivArea', fontsize=13)
 plt.show()
 
-train.shape   #2 Rows Gone from the removing the outlier
+train.shape   #4 Rows Gone from the removing the outlier
 
 
 # Sales Price
 print('Skew: {:.3f} | Kurtosis: {:.3f}'.format(train.SalePrice.skew(), train.SalePrice.kurtosis()))
-#skew: 1.881, kurtosis: 6.523
+#skew: 1.566, kurtosis: 3.885
 
 #histogram of SalePrice to see the distribution 
 fig, (ax1, ax2) = plt.subplots(1,2,figsize=(14,4))
@@ -249,13 +249,13 @@ test_missing.sort_values(['missing percent'], ascending = [False])
 # There are some that has missing only in train dataset and only in test dataset.
 # first drop the SalePrice column of train dataset and
 # then we will combine two dataset and then clean it. 
-trainX = train.drop('SalePrice', axis =1)     #1458 rows with 80 columns
+trainX = train.drop('SalePrice', axis =1)     #1456 rows with 80 columns
 testX = test                                  #1459 rows with 80 columns
 test_train = pd.concat([trainX, testX], keys=['train', 'test'])
 
 #Check the test_train dataset
 test_train.shape
-#2917 rows, 80 columns
+#2915 rows, 80 columns
 
 # Dropping the columns with so many missing values. 
 test_train = test_train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence', 'Id'])
@@ -264,7 +264,7 @@ test_train = test_train.drop(columns= ['PoolQC', 'MiscFeature', 'Alley', 'Fence'
 
 #Check the test_train dataset
 test_train.shape
-#2917 rows, 75 columns
+#2915 rows, 75 columns
 
 
 # Check the original Missing Values Data Frame: Test_Train 
@@ -368,7 +368,7 @@ for x in skewed_feats:
     test_train[x] += 1
 
 # Reassign train dataset from the transformed df
-train = test_train[:1458]
+train = test_train[:1456]
 
 # to check after the box cox
 plt.figure(figsize=(20,20))
@@ -401,7 +401,7 @@ test_train = pd.get_dummies(ctd, columns = ['MSZoning', 'Street','LotShape','Lan
 
 #to check the final test_train after imputation and dummification
 test_train
-#2917 rows with 251 columns
+#2915 rows with 251 columns
 
 
 
@@ -411,15 +411,15 @@ test_train
 
 ## Spliting the dataset back to train and test
 #final test and train dataset
-final_train = df.iloc[:1458,:]
-final_test = df.iloc[1458:,:]
+final_train = df.iloc[:1456,:]
+final_test = df.iloc[1456:,:]
 print('final_train', final_train.shape, 'final_test', final_test.shape)
-#final_train(1458,251) final_test (1459.251)
+#final_train(1456,251) final_test (1459.251)
 
 #created SalePrice df that just includes SalePrice. 
 SalePrice = train.iloc[:,-1:]
 SalePrice
-#1458 rows and 1 column
+#1456 rows and 1 column
 
 #make final_trainRsale
 final_trainRsale = final_train
