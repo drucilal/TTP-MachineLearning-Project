@@ -5,8 +5,6 @@
 # Housing EDA Code
 
 
-
-
 ##IMPORT
 #import the packages
 import pandas as pd
@@ -23,8 +21,29 @@ from sklearn.preprocessing import StandardScaler
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
-
-
+#Changing variables to objects:
+train['MSSubClass'] = train['MSSubClass'].astype(object)
+train['OverallQual'] = train['OverallQual'].astype(object)
+train['OverallCond'] = train['OverallCond'].astype(object)
+train['ExterCond'] = train['ExterCond'].astype(object)
+train['ExterQual'] = train['ExterQual'].astype(object)
+train['BsmtQual'] = train['BsmtQual'].astype(object)
+train['BsmtCond'] = train['BsmtCond'].astype(object)
+train['GarageQual'] = train['GarageQual'].astype(object)
+train['GarageCond'] = train['GarageCond'].astype(object)
+train['KitchenQual'] = train['KitchenQual'].astype(object)
+train['FireplaceQu'] = train['FireplaceQu'].astype(object)
+test['MSSubClass'] = test['MSSubClass'].astype(object)
+test['OverallQual'] = test['OverallQual'].astype(object)
+test['OverallCond'] = test['OverallCond'].astype(object)
+test['ExterCond'] = test['ExterCond'].astype(object)
+test['ExterQual'] = test['ExterQual'].astype(object)
+test['BsmtQual'] = test['BsmtQual'].astype(object)
+test['BsmtCond'] = test['BsmtCond'].astype(object)
+test['GarageQual'] = test['GarageQual'].astype(object)
+test['GarageCond'] = test['GarageCond'].astype(object)
+test['KitchenQual'] = test['KitchenQual'].astype(object)
+test['FireplaceQu'] = test['FireplaceQu'].astype(object)
 
 
 ##UNDERSTADING THE DATA
@@ -57,16 +76,13 @@ train.select_dtypes(include = ['object']).dtypes
 
 
 
-
-
-
 ##Variables
 #Numerical Variables
-numerics = ['int64', 'float64']
-numeric_train  = train.select_dtypes(include = numerics)  
-numeric_train = numeric_train.drop(columns = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath','GarageYrBlt', 'MoSold', 'YrSold', 'YearRemodAdd', 'OverallQual',
-                                             'OverallCond', 'YearBuilt','MSSubClass'])
-numeric_train.head()
+# numerics = ['int64', 'float64']
+# numeric_train  = train.select_dtypes(include = numerics)  
+# numeric_train = numeric_train.drop(columns = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath','GarageYrBlt', 'MoSold', 'YrSold', 'YearRemodAdd', 'OverallQual',
+#                                              'OverallCond', 'YearBuilt','MSSubClass'])
+# numeric_train.head()
 
 # Factor Variables
 factors = ['MSSubClass', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd', 'GarageYrBlt', 'MoSold', 'YrSold']
@@ -249,6 +265,7 @@ missingtest_percent = missing_test/test.shape[0] * 100
 test_missing = pd.DataFrame([missing_test, missingtest_percent], index = ['total', 'missing percent']).T
 test_missing.sort_values(['missing percent'], ascending = [False])
 
+
 # There are some that has missing only in train dataset and only in test dataset.
 # first drop the SalePrice column of train dataset and
 # then we will combine two dataset and then clean it. 
@@ -355,6 +372,8 @@ test_train['TotalPorchSF'] = test_train['WoodDeckSF'] + test_train['OpenPorchSF'
 #dropping the original variables used to create
 test_train = test_train.drop(columns= ['TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'BsmtFullBath', 'FullBath', 'BsmtHalfBath', \
                                       'HalfBath', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch', '3SsnPorch', 'ScreenPorch'])
+
+#changing to 
 
 #find numerical variables so we can check skewness. 
 a1 = test_train.dtypes[test_train.dtypes != "object"].index
