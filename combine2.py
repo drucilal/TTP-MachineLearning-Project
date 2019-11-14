@@ -1,10 +1,8 @@
 #This py file is for putting everyone's work together.
 #Please update on your own py file under your folder first and try it out 
-#before putting it up here. ALL EDA is found here.
+#before putting it up here. 
 
 # Housing EDA Code
-
-
 
 
 ##IMPORT
@@ -14,14 +12,38 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 from scipy import stats
+from scipy.stats import norm, skew
+from scipy.special import boxcox1p
+from scipy.stats import boxcox_normmax
 from sklearn.preprocessing import StandardScaler
 
 #import the data
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
-
-
+#Changing variables to objects:
+train['MSSubClass'] = train['MSSubClass'].astype(object)
+train['OverallQual'] = train['OverallQual'].astype(object)
+train['OverallCond'] = train['OverallCond'].astype(object)
+train['ExterCond'] = train['ExterCond'].astype(object)
+train['ExterQual'] = train['ExterQual'].astype(object)
+train['BsmtQual'] = train['BsmtQual'].astype(object)
+train['BsmtCond'] = train['BsmtCond'].astype(object)
+train['GarageQual'] = train['GarageQual'].astype(object)
+train['GarageCond'] = train['GarageCond'].astype(object)
+train['KitchenQual'] = train['KitchenQual'].astype(object)
+train['FireplaceQu'] = train['FireplaceQu'].astype(object)
+test['MSSubClass'] = test['MSSubClass'].astype(object)
+test['OverallQual'] = test['OverallQual'].astype(object)
+test['OverallCond'] = test['OverallCond'].astype(object)
+test['ExterCond'] = test['ExterCond'].astype(object)
+test['ExterQual'] = test['ExterQual'].astype(object)
+test['BsmtQual'] = test['BsmtQual'].astype(object)
+test['BsmtCond'] = test['BsmtCond'].astype(object)
+test['GarageQual'] = test['GarageQual'].astype(object)
+test['GarageCond'] = test['GarageCond'].astype(object)
+test['KitchenQual'] = test['KitchenQual'].astype(object)
+test['FireplaceQu'] = test['FireplaceQu'].astype(object)
 
 
 ##UNDERSTADING THE DATA
@@ -29,10 +51,10 @@ test = pd.read_csv('test.csv')
 train.columns
 
 #structure of train dataset
-print('original rows:', train.shape[0], 'original columns:', train.shape[1])
+# print('original rows:', train.shape[0], 'original columns:', train.shape[1])
 
 #structure of test dataset
-print('test rows:', test.shape[0], 'test columns:', test.shape[1])
+# print('test rows:', test.shape[0], 'test columns:', test.shape[1])
 
 #training data information
 train.info()
@@ -54,33 +76,30 @@ train.select_dtypes(include = ['object']).dtypes
 
 
 
-
-
-
 ##Variables
 #Numerical Variables
-numerics = ['int64', 'float64']
-numeric_train  = train.select_dtypes(include = numerics)  
-numeric_train = numeric_train.drop(columns = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath','GarageYrBlt', 'MoSold', 'YrSold', 'YearRemodAdd', 'OverallQual',
-                                             'OverallCond', 'YearBuilt','MSSubClass'])
-numeric_train.head()
+# numerics = ['int64', 'float64']
+# numeric_train  = train.select_dtypes(include = numerics)  
+# numeric_train = numeric_train.drop(columns = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath','GarageYrBlt', 'MoSold', 'YrSold', 'YearRemodAdd', 'OverallQual',
+#                                              'OverallCond', 'YearBuilt','MSSubClass'])
+# numeric_train.head()
 
 # Factor Variables
 factors = ['MSSubClass', 'OverallQual', 'OverallCond', 'YearBuilt', 'YearRemodAdd', 'GarageYrBlt', 'MoSold', 'YrSold']
 train_factors = train[factors]
-train_factors.head()
+# train_factors.head()
 
 # Categorical Variables: Turned into Dummies by Owner
 categories = ['BsmtFullBath', 'BsmtHalfBath', 'FullBath', 'HalfBath']
 train_categories = train[categories]
-train_categories.head()
+# train_categories.head()
 
 # Categorical Variables 
 categori = ['object']
 catego = train.select_dtypes(include= categori)
 catego.head()
 categorical_train = pd.concat([catego, train_categories], axis=1, sort=False)
-categorical_train.head()
+# categorical_train.head()
 
 
 
@@ -101,7 +120,7 @@ print('The average sales price is ${:,.0f}, while median is ${:,.0f}'.format(
     train.SalePrice.mean(), train.SalePrice.median()))
 train.SalePrice.hist(bins=75, rwidth=.8, figsize=(14,4))
 plt.title('How expensive are houses?')
-plt.show()
+# plt.show()
 
 #Remove outlier
 train = train.drop(train[(train['GrLivArea']>4000)].index)
@@ -111,7 +130,7 @@ fig, ax = plt.subplots()
 ax = sns.regplot(train['GrLivArea'], train['SalePrice'], scatter_kws={'s': 10})
 plt.ylabel('SalePrice', fontsize=13)
 plt.xlabel('GrLivArea', fontsize=13)
-plt.show()
+# plt.show()
 
 train.shape   #4 Rows Gone from the removing the outlier
 
@@ -127,7 +146,7 @@ ax1.set_ylabel('Frequency')
 ax1.set_title('SalePrice Distribution')
 #QQ-plot
 stats.probplot(train['SalePrice'], plot=plt)
-plt.show()
+# plt.show()
 #this is right skewed (violating assumptions of linear regression) so we will need to normalize. 
 #by doing log transformation 
 
@@ -141,7 +160,7 @@ ax1.set_ylabel('Frequency')
 ax1.set_title('SalePrice Distribution')
 #QQ-plot
 stats.probplot(y_log, plot=plt)
-plt.show()
+# plt.show()
 
 
 
@@ -154,38 +173,38 @@ plt.show()
 ##EDA
 # Here is a scatter plot with dist plot for all numeric variables in the train data 
 #by Sale Price
-sns.jointplot(x="LotFrontage", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="LotArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="MasVnrArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="BsmtFinSF1", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="1stFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="2ndFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x='LowQualFinSF', y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GrLivArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="BedroomAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="KitchenAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="TotRmsAbvGrd", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GarageCars", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="GarageArea", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="WoodDeckSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="OpenPorchSF", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="EnclosedPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="3SsnPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="ScreenPorch", y="SalePrice", data=numeric_train, kind = 'reg')
-sns.jointplot(x="MiscVal", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="LotFrontage", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="LotArea", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="MasVnrArea", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="BsmtFinSF1", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="1stFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="2ndFlrSF", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x='LowQualFinSF', y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="GrLivArea", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="BedroomAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="KitchenAbvGr", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="TotRmsAbvGrd", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="GarageCars", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="GarageArea", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="WoodDeckSF", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="OpenPorchSF", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="EnclosedPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="3SsnPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="ScreenPorch", y="SalePrice", data=numeric_train, kind = 'reg')
+# sns.jointplot(x="MiscVal", y="SalePrice", data=numeric_train, kind = 'reg')
 
 ## Distribution Plots for Numerical Features
 # Grid of distribution plots of all numerical features
-f = pd.melt(numeric_train, value_vars=sorted(numeric_train))
-g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
-g = g.map(sns.distplot, 'value')
+# f = pd.melt(numeric_train, value_vars=sorted(numeric_train))
+# g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
+# g = g.map(sns.distplot, 'value')
 
 #coorelation
 #Numeric variables correlation
 numcor = train.corr()
 colormap = plt.cm.RdBu
-f, ax = plt.subplots(figsize = (9,8))
-sns.heatmap(numcor, ax=ax, cmap = colormap, linewidths = 0.1)
+# f, ax = plt.subplots(figsize = (9,8))
+# sns.heatmap(numcor, ax=ax, cmap = colormap, linewidths = 0.1)
 
 #Which ones are highly correlated?
 s = numcor.unstack()
@@ -195,19 +214,19 @@ s[(abs(s)>0.6) & (abs(s) < 1)]
 categorical_train.columns
 f = pd.melt(categorical_train, value_vars=sorted(categorical_train))
 g = sns.FacetGrid(f, col='variable', col_wrap=4, sharex=False, sharey=False)
-plt.xticks(rotation='vertical')
+# plt.xticks(rotation='vertical')
 g = g.map(sns.countplot, 'value')
-[plt.setp(ax.get_xticklabels(), rotation=60) for ax in g.axes.flat]
+# [plt.setp(ax.get_xticklabels(), rotation=60) for ax in g.axes.flat]
 g.fig.tight_layout()
-plt.show()
+# plt.show()
 
 # Box Plot for Categorical Features
 f = pd.melt(train, id_vars=['SalePrice'], value_vars=sorted(categorical_train))
 g = sns.FacetGrid(f, col='variable', col_wrap=3, sharex=False, sharey=False, size=4)
-g = g.map(sns.boxplot, 'value', 'SalePrice')
-[plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
+# g = g.map(sns.boxplot, 'value', 'SalePrice')
+# [plt.setp(ax.get_xticklabels(), rotation=90) for ax in g.axes.flat]
 g.fig.tight_layout()
-plt.show()
+# plt.show()
 
 # Graphing Factors
 f = pd.melt(train_factors, value_vars=sorted(train_factors))
@@ -216,14 +235,14 @@ plt.xticks(rotation='vertical')
 g = g.map(sns.countplot, 'value')
 [plt.setp(ax.get_xticklabels(), rotation=60) for ax in g.axes.flat]
 g.fig.tight_layout()
-plt.show()
+# plt.show()
 
 # When were the houses built?
 print('Oldest house built in {}. Newest house built in {}.'.format(
     train.YearBuilt.min(), train.YearBuilt.max()))
 train.YearBuilt.hist(bins=14, rwidth=.9, figsize=(12,4))
 plt.title('When were the houses built?')
-plt.show()
+# plt.show()
 
 
 
@@ -245,6 +264,7 @@ missing_test = missing_test[missing_test>0]
 missingtest_percent = missing_test/test.shape[0] * 100
 test_missing = pd.DataFrame([missing_test, missingtest_percent], index = ['total', 'missing percent']).T
 test_missing.sort_values(['missing percent'], ascending = [False])
+
 
 # There are some that has missing only in train dataset and only in test dataset.
 # first drop the SalePrice column of train dataset and
@@ -349,6 +369,12 @@ test_train['TotalBath'] = test_train['BsmtFullBath'] + test_train['FullBath'] + 
 #We do not distinguish between the variables
 test_train['TotalPorchSF'] = test_train['WoodDeckSF'] + test_train['OpenPorchSF'] + test_train['EnclosedPorch']+ test_train['3SsnPorch']+ test_train['ScreenPorch']
 
+#dropping the original variables used to create
+test_train = test_train.drop(columns= ['TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'BsmtFullBath', 'FullBath', 'BsmtHalfBath', \
+                                      'HalfBath', 'WoodDeckSF', 'OpenPorchSF', 'EnclosedPorch', '3SsnPorch', 'ScreenPorch'])
+
+#changing to 
+
 #find numerical variables so we can check skewness. 
 a1 = test_train.dtypes[test_train.dtypes != "object"].index
 
@@ -368,40 +394,40 @@ for x in skewed_feats:
     test_train[x] += 1
 
 # Reassign train dataset from the transformed df
-train = test_train[:1456]
+trainX = test_train[:1456]
 
 # to check after the box cox
 plt.figure(figsize=(20,20))
-g1 = sns.jointplot(trainXLotFrontage'],y_log, s = 10)
-g1.set_axis_labels('LotFrontage', 'log(SalePrice)', fontsize=12)
-g2 = sns.jointplot(trainX['LotArea'],y_log, color="indianred", s = 10, xlim  = [10, 40])
-g2.set_axis_labels('LotArea', 'log(SalePrice)', fontsize=12)
+# g1 = sns.jointplot(['trainXLotFrontage'],y_log, s = 10)
+# g1.set_axis_labels('LotFrontage', 'log(SalePrice)', fontsize=12)
+# g2 = sns.jointplot(trainX['LotArea'],y_log, color="indianred", s = 10, xlim  = [10, 40])
+# g2.set_axis_labels('LotArea', 'log(SalePrice)', fontsize=12)
 
-#Create Dummy variable for finished bsmt
-#not distinguishing between finish quality for basement only if the basement is unfinished
-test_train['BsmtFin']= (test_train['BsmtFinType1'] != 'Unf')*1
+# #Create Dummy variable for finished bsmt
+# #not distinguishing between finish quality for basement only if the basement is unfinished
+# test_train['BsmtFin']= (test_train['BsmtFinType1'] != 'Unf')*1
 
-#listing categorical values so we can create dummy columns
-ctd = test_train
-dl = []
-for i in ctd:
-    if ctd[i].dtype == 'O':
-        dl.append(i)
-print(dl)
+# #listing categorical values so we can create dummy columns
+# ctd = test_train
+# dl = []
+# for i in ctd:
+#     if ctd[i].dtype == 'O':
+#         dl.append(i)
+# print(dl)
 
-#Creating Dummy variables, and dropping first instances
-test_train = pd.get_dummies(ctd, columns = ['MSZoning', 'Street','LotShape','LandContour','Utilities', \
-                          'LotConfig', 'LandSlope', 'Neighborhood', 'Condition1', 'Condition2', \
-                          'BldgType', 'HouseStyle', 'RoofStyle', 'RoofMatl', 'Exterior1st', \
-                          'Exterior2nd', 'MasVnrType', 'ExterQual', 'ExterCond', 'Foundation', \
-                          'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', \
-                          'Heating', 'HeatingQC', 'CentralAir', 'Electrical', 'KitchenQual', \
-                          'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', 'GarageQual', \
-                          'GarageCond', 'PavedDrive', 'SaleType', 'SaleCondition'],drop_first = True)
+# #Creating Dummy variables, and dropping first instances
+# test_train = pd.get_dummies(ctd, columns = ['MSZoning', 'Street','LotShape','LandContour','Utilities', \
+#                           'LotConfig', 'LandSlope', 'Neighborhood', 'Condition1', 'Condition2', \
+#                           'BldgType', 'HouseStyle', 'RoofStyle', 'RoofMatl', 'Exterior1st', \
+#                           'Exterior2nd', 'MasVnrType', 'ExterQual', 'ExterCond', 'Foundation', \
+#                           'BsmtQual', 'BsmtCond', 'BsmtExposure', 'BsmtFinType1', 'BsmtFinType2', \
+#                           'Heating', 'HeatingQC', 'CentralAir', 'Electrical', 'KitchenQual', \
+#                           'Functional', 'FireplaceQu', 'GarageType', 'GarageFinish', 'GarageQual', \
+#                           'GarageCond', 'PavedDrive', 'SaleType', 'SaleCondition'],drop_first = True)
 
-#to check the final test_train after imputation and dummification
-test_train
-#2915 rows with 251 columns
+# #to check the final test_train after imputation and dummification
+# test_train
+# #2915 rows with 251 columns
 
 
 
@@ -411,8 +437,8 @@ test_train
 
 ## Spliting the dataset back to train and test
 #final test and train dataset
-final_train = df.iloc[:1456,:]
-final_test = df.iloc[1456:,:]
+final_train = test_train.iloc[:1456,:]
+final_test = test_train.iloc[1456:,:]
 print('final_train', final_train.shape, 'final_test', final_test.shape)
 #final_train(1456,251) final_test (1459.251)
 
@@ -470,6 +496,6 @@ del final_trainwithYLOG['level_1']
 final_trainwithYLOG.head()
 
 #Exporting final cleaned train dataset and cleaned 
-final_trainRsale.to_csv('cleanedtrain.csv')
-final_test.to_csv('cleanedtest.csv')
-final_trainwithYLOG.to_csv('cleanedtrainwithYlog.csv')
+# final_trainRsale.to_csv('tr1.csv')
+final_test.to_csv('te1.csv')
+final_trainwithYLOG.to_csv('try1.csv')
