@@ -18,6 +18,9 @@ from sklearn.preprocessing import StandardScaler
 train = pd.read_csv('train.csv')
 test = pd.read_csv('test.csv')
 
+trainprice = train.loc[:,'SalePrice']
+trainprice = pd.DataFrame(trainprice)
+
 #Changing variables to objects:
 train['MSSubClass'] = train['MSSubClass'].astype(object)
 train['OverallQual'] = train['OverallQual'].astype(object)
@@ -179,6 +182,22 @@ test_train['Percent_BsmtF'] = (test_train['BsmtFinSF1'] + test_train['BsmtFinSF2
 # test_train['percent_finishbsmt1'] = test_train['percent_finishbsmt1'].astype(int)
 test_train.loc[:, "Percent_BsmtF"] = test_train.loc[:, "Percent_BsmtF"].fillna("0")
 
+#even more variables
+test_train['YrRemMinBui'] = test_train['YearRemodAdd'] - test_train['YearBuilt']
+test_train['YrSoldMinRem'] = test_train['YrSold'] - test_train['YearRemodAdd']
+
+# if test_train['YrRemMinBui'] == 0:
+#     test_train['isNew'] = 1
+# else:
+#     test_train['isNew'] = 0
+    
+test_train.loc[test_train['YrRemMinBui'] == 0,'isNew'] = 1
+test_train.loc[test_train['YrRemMinBui'] != 0,'isNew'] = 0
+test_train.loc[:, "YrSoldMinRem"] = test_train.loc[:, "YrSoldMinRem"].fillna(0)
+# test_train.YrSoldMinRem = test_train.YrSoldMinRem.fillna(test_train.YrSoldMinRem.mean())
+# test_train['YrSoldMinRem'].fillna((test_train['YrSoldMinRem'].mean()), inplace=True)
+
+# test_train['p_sf'] = trainprice['SalePrice']-1/test_train['TotalSF']
 
 
 
