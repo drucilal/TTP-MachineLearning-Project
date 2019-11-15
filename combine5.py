@@ -214,22 +214,42 @@ test_train = test_train.drop(columns= ['TotalBsmtSF', '1stFlrSF', '2ndFlrSF', 'B
 
 #find numerical variables so we can check skewness. 
 a1 = test_train.dtypes[test_train.dtypes != "object"].index
+# a1 = a1.drop(columns=['percent_grliving'])
+a1 = ['LotFrontage',
+ 'LotArea',
+ 'MasVnrArea',
+ 'BsmtFinSF1',
+ 'BsmtFinSF2',
+ 'BsmtUnfSF',
+ 'LowQualFinSF',
+ 'GrLivArea',
+ 'BedroomAbvGr',
+ 'KitchenAbvGr',
+ 'TotRmsAbvGrd',
+ 'Fireplaces',
+ 'GarageCars',
+ 'GarageArea',
+ 'PoolArea',
+ 'MiscVal',
+ 'TotalSF',
+ 'TotalBath',
+ 'TotalPorchSF',
+ 'isNew']
 
-skewed_features = test_train[a1].apply(lambda x: skew(x)).sort_values(ascending=False)
-print("\nSkew in numerical features: \n")
-skewness = pd.DataFrame({'Skew' :skewed_features})
-skewness
+# skewed_features = test_train[a1].apply(lambda x: skew(x)).sort_values(ascending=False)
+# print("\nSkew in numerical features: \n")
+# skewness = pd.DataFrame({'Skew' :skewed_features})
+# skewness
 
-#box-cox
-skewness = skewness[abs(skewness) > 0.75].dropna()
-skewed_feats = skewness.index
-skewed_feats
+# #box-cox
+# skewness = skewness[abs(skewness) > 0.75].dropna()
+# skewed_feats = skewness.index
+# skewed_feats
 
 lam = 0.15
-for x in skewed_feats:
+for x in a1:
     test_train[x] = boxcox1p(test_train[x], lam)
     test_train[x] += 1
-
 # Reassign train dataset from the transformed df
 trainX = test_train[:1456]
 
