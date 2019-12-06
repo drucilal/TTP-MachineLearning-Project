@@ -1,8 +1,12 @@
 Machine Learning for house pricing prediction in Ames, Iowa.
 
 New York City Data Science Academy
+--
+
+Team 
+--
 TTP-MachineLearning-Project
-Group : Ira Villar, Bee Kim, Drucila LeFevre, Tomas Nivon
+Ira Villar, Bee Kim, Drucila LeFevre, Tomas Nivon
 
 Overview
 --------
