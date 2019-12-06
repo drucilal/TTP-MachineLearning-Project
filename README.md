@@ -81,10 +81,15 @@ Conclusion
 Kaggle Scores
 ---
 LASSO: 0.12104
+
 OLS : 0.12215
+
 ELASTIC NET: 0.12611
+
 RANDOM FOREST: 0.1441
+
 XGB: 0.12787
+
 STACKED: 0.124
 
 Future Improvement 
